@@ -22,7 +22,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import FusionSolarAPI, APIAuthError, APIConnectionError, APIAuthCaptchaError
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, MIN_SCAN_INTERVAL, FUSION_SOLAR_HOST, CAPTCHA_INPUT
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, MIN_SCAN_INTERVAL, FUSION_SOLAR_HOST, CAPTCHA_INPUT, DATA_HOST, DP_SESSION
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +32,9 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME, description={"suggested_value": ""}): str,
         vol.Required(CONF_PASSWORD, description={"suggested_value": ""}): str,
-        vol.Required(FUSION_SOLAR_HOST, description={"suggested_value": "eu5.fusionsolar.huawei.com"}): str
+        vol.Required(FUSION_SOLAR_HOST, description={"suggested_value": "la5.fusionsolar.huawei.com"}): str,
+        vol.Optional(DATA_HOST, description={"suggested_value": ""}): str,
+        vol.Optional(DP_SESSION, description={"suggested_value": ""}): str,
     }
 )
 
@@ -48,7 +50,14 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    api = FusionSolarAPI(data[CONF_USERNAME], data[CONF_PASSWORD], data[FUSION_SOLAR_HOST], data.get(CAPTCHA_INPUT, None))
+    api = FusionSolarAPI(
+        user=data[CONF_USERNAME],
+        pwd=data[CONF_PASSWORD],
+        login_host=data[FUSION_SOLAR_HOST],
+        captcha_input=data.get(CAPTCHA_INPUT, None),
+        data_host=data.get(DATA_HOST),
+        dp_session=data.get(DP_SESSION),
+    )
     try:
         await hass.async_add_executor_job(api.login)
         # If you cannot connect, raise CannotConnect
@@ -152,6 +161,8 @@ class FusionSolarConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_USERNAME, default=config_entry.data[CONF_USERNAME]): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Required(FUSION_SOLAR_HOST, default=config_entry.data[FUSION_SOLAR_HOST]): str,
+                    vol.Optional(DATA_HOST, default=config_entry.data.get(DATA_HOST, "")): str,
+                    vol.Optional(DP_SESSION, default=config_entry.data.get(DP_SESSION, "")): str,
                 }
             ),
             errors=errors,
@@ -184,6 +195,8 @@ class FusionSolarConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_PASSWORD, default=user_input[CONF_PASSWORD]): str,
                     vol.Required(FUSION_SOLAR_HOST, default=user_input[FUSION_SOLAR_HOST]): str,
                     vol.Required(CAPTCHA_INPUT): str,
+                    vol.Optional(DATA_HOST, default=user_input.get(DATA_HOST, "")): str,
+                    vol.Optional(DP_SESSION, default=user_input.get(DP_SESSION, "")): str,
                 }
             ),
             description_placeholders={"captcha_img": '<img id="fusion_solar_app_security_captcha" src="' + captcha_img + '"/>'},

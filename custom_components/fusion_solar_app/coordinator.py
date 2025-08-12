@@ -10,11 +10,11 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
 )
-from homeassistant.core import DOMAIN, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import FusionSolarAPI, APIAuthError, Device, DeviceType
-from .const import DEFAULT_SCAN_INTERVAL, FUSION_SOLAR_HOST, CAPTCHA_INPUT
+from .const import DEFAULT_SCAN_INTERVAL, FUSION_SOLAR_HOST, CAPTCHA_INPUT, DOMAIN, DATA_HOST, DP_SESSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +40,9 @@ class FusionSolarCoordinator(DataUpdateCoordinator):
         self.user = config_entry.data[CONF_USERNAME]
         self.pwd = config_entry.data[CONF_PASSWORD]
         self.login_host = config_entry.data[FUSION_SOLAR_HOST]
-        self.captcha_input = config_entry.data.get("CAPTCHA_INPUT", None)
+        self.captcha_input = config_entry.data.get(CAPTCHA_INPUT, None)
+        self.data_host = config_entry.data.get(DATA_HOST)
+        self.dp_session = config_entry.data.get(DP_SESSION)
 
         # set variables from options.  You need a default here incase options have not been set
         self.poll_interval = config_entry.options.get(
@@ -53,7 +55,7 @@ class FusionSolarCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} ({config_entry.unique_id})",
+            name=f"fusion_solar_app ({config_entry.unique_id})",
             # Method to call on every update interval.
             update_method=self.async_update_data,
             # Polling interval. Will only be polled if there are subscribers.
@@ -62,7 +64,14 @@ class FusionSolarCoordinator(DataUpdateCoordinator):
         )
 
         # Initialise your api here
-        self.api = FusionSolarAPI(user=self.user, pwd=self.pwd, login_host=self.login_host, captcha_input=self.captcha_input)
+        self.api = FusionSolarAPI(
+            user=self.user,
+            pwd=self.pwd,
+            login_host=self.login_host,
+            captcha_input=self.captcha_input,
+            data_host=self.data_host,
+            dp_session=self.dp_session,
+        )
 
     async def async_update_data(self):
         """Fetch data from API endpoint.

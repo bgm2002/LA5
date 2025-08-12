@@ -16,14 +16,18 @@
         "data": {
           "username": "Username",
           "password": "Password",
-          "fusion_solar_host": "Fusion Solar Login Host"
+          "fusion_solar_host": "Fusion Solar Login Host",
+          "data_host": "Fusion Solar Data Host (optional, e.g. from Location header)",
+          "dp_session": "dp-session cookie (optional)"
         }
       },
       "reconfigure": {
         "data": {
           "username": "Username",
           "password": "Password",
-          "fusion_solar_host": "Fusion Solar Login Host"
+          "fusion_solar_host": "Fusion Solar Login Host",
+          "data_host": "Fusion Solar Data Host (optional, e.g. from Location header)",
+          "dp_session": "dp-session cookie (optional)"
         }
       },
       "captcha": {
