@@ -1,6 +1,6 @@
 {
   "config": {
-    "title": "Fusion Solar App Integration",
+    "title": "Fusion Solar App LA5",
     "abort": {
       "already_configured": "Device is already configured",
       "reconfigure_successful": "Reconfiguration successful"
@@ -16,18 +16,22 @@
         "data": {
           "username": "Username",
           "password": "Password",
-          "fusion_solar_host": "Fusion Solar Login Host"
+          "fusion_solar_host": "Fusion Solar Login Host",
+          "data_host": "Fusion Solar Data Host (optional, e.g. from Location header)",
+          "dp_session": "dp-session cookie (optional)"
         }
       },
       "reconfigure": {
         "data": {
           "username": "Username",
           "password": "Password",
-          "fusion_solar_host": "Fusion Solar Login Host"
+          "fusion_solar_host": "Fusion Solar Login Host",
+          "data_host": "Fusion Solar Data Host (optional, e.g. from Location header)",
+          "dp_session": "dp-session cookie (optional)"
         }
       },
       "captcha": {
-        "title": "Fusion Solar App: Captcha",
+        "title": "Fusion Solar App LA5: Captcha",
         "description": "{captcha_img}",
         "data": {
           "captcha_input": "Captcha"
