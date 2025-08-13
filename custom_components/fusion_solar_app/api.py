@@ -45,7 +45,6 @@ DEVICES = [
     {"id": "Panel Production Power", "type": DeviceType.SENSOR_KW, "icon": "mdi:solar-panel"},
     {"id": "Panel Production Today", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
     {"id": "Panel Production Week", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
-    {"id": "Panel Production Week", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
     {"id": "Panel Production Month", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
     {"id": "Panel Production Year", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
     {"id": "Panel Production Lifetime", "type": DeviceType.SENSOR_KWH, "icon": "mdi:solar-panel"},
@@ -178,6 +177,12 @@ class FusionSolarAPI:
                 return True
             except Exception as ex:
                 _LOGGER.warning("Pre-provided session failed, falling back to full login: %s", ex)
+
+        # SI TENEMOS dp_session + data_host, no intentes pubkey/login
+        if self.dp_session and self.data_host:
+            _LOGGER.debug("Skipping pubkey: using provided dp-session and data_host")
+            self.connected = True
+            return True
 
         # 0) Priming request to set anti-bot/WAF cookies
         try:
@@ -553,9 +558,10 @@ class FusionSolarAPI:
                 _LOGGER.error("Error processing response: JSON format invalid!\r\nCookies: %s\r\nHeader: %s\r\n%s", cookies, headers, response.text)
                 raise APIAuthError("Error processing response: JSON format invalid!\r\nCookies: %s\r\nHeader: %s\r\n%s", cookies, headers, response.text)
 
+            # Hay veces que energy-flow no está disponible inmediatamente; no tirar toda la actualización
             if "data" not in data or "flow" not in data["data"]:
-                _LOGGER.error("Error on data structure!")
-                raise APIDataStructureError("Error on data structure!")
+                _LOGGER.warning("Data flow not available yet; returning empty device list for retry.")
+                return []
 
             # Process nodes to gather required information
             flow_data_nodes = data["data"]["flow"].get("nodes", [])
@@ -607,7 +613,7 @@ class FusionSolarAPI:
             _LOGGER.debug("output JSON: %s", output)
         else:
             _LOGGER.error("Error on data request! %s", response.text)
-            raise APIDataStructureError("Error on data request! %s", response.text)
+            return []
 
         """Get devices on api."""
         return [

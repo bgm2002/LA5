@@ -77,12 +77,10 @@ class FusionSolarConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
     _input_data: dict[str, Any]
 
+    # Mantener compatibilidad sin usar set option flow explicitamente
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        # Remove this method and the FusionSolarConfigFlow class
-        # if you do not want any options for your integration.
         return FusionSolarOptionsFlowHandler(config_entry)
 
     async def async_step_user(

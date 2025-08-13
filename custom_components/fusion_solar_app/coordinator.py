@@ -36,6 +36,7 @@ class FusionSolarCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize coordinator."""
 
+        self.config_entry = config_entry
         # Set variables from values entered in config flow setup
         self.user = config_entry.data[CONF_USERNAME]
         self.pwd = config_entry.data[CONF_PASSWORD]
@@ -83,6 +84,10 @@ class FusionSolarCoordinator(DataUpdateCoordinator):
             if not self.api.connected:
                 await self.hass.async_add_executor_job(self.api.login)
             devices = await self.hass.async_add_executor_job(self.api.get_devices)
+            # Si no hay dispositivos, forzar un refresh y reintento rápido
+            if not devices:
+                await self.hass.async_add_executor_job(self.api.refresh_csrf)
+                devices = await self.hass.async_add_executor_job(self.api.get_devices)
         except APIAuthError as err:
             _LOGGER.error(err)
             await self.hass.async_add_executor_job(self.api.login)
